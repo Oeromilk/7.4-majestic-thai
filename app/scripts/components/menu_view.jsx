@@ -36,32 +36,26 @@ var OrderComponent = React.createClass({
 });
 
 var MenuList = React.createClass({
-  getInitialState: function(){
-    return {
-      item: '',
-      price: ''
-    };
-  },
-  handleItem: function(e){
-    e.preventDefault();
+  handleItem: function(content){
+    var contentData = content;
 
-    console.log(this.props);
+    console.log(contentData);
   },
   render: function(){
     var self = this;
     var menuListItems = this.props.menuItems.map(function(content){
-
+      var handleItem = this.handleItem.bind(this, content);
       return (
 
         <tr key={content.id}>
           <td>
             <h4>{content.item}</h4>
             <p>{content.description}</p>
-            <button onClick={self.handleItem} type="button" className="btn btn-info">${content.price}</button>
+            <button onClick={handleItem} type="button" className="btn btn-info">${content.price}</button>
           </td>
         </tr>
       );
-    });
+    }.bind(this));
     return (
       <div className="col-md-9">
         <table className="table">
@@ -83,7 +77,7 @@ var MenuContainer = React.createClass({
   render: function(){
     return (
       <TemplateComponent>
-        <MenuList menuItems={menuItems} />
+        <MenuList menuItems={menuItems} addItem={this.handleItem}/>
         <OrderComponent />
       </TemplateComponent>
     );
