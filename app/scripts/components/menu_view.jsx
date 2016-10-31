@@ -1,14 +1,31 @@
 var React = require('react');
 var Backbone = require('backbone');
+require('backbone-react-component');
 
 var MenuItemCollection = require('../models/menu.js').MenuItemCollection;
+var OrderCollection = require('../models/orders.js').OrderCollection;
 var MenuItem = require('../models/menu.js').MenuItem;
 var TemplateComponent = require('./template.jsx').TemplateComponent;
 var menuItems = require('../menu_items.js');
 
 var OrderComponent = React.createClass({
+  mixins: [Backbone.React.Component.mixin],
+  getInitialState: function(){
+    var orderCollection = new OrderCollection();
+    return {
+      orderCollection: orderCollection
+    };
+  },
+  handleOrder: function(){
+    var itemData = this.props.collection.map(function(content){
+      return [
+        content.get('item'),
+        content.get('price')
+      ];
+    });
+    this.state.orderCollection.create({itemData});
+  },
   render: function(){
-    console.log(this.props.collection);
     var orderList = this.props.collection.map(function(content){
       return (
         <tr key={content.get('id')}>
@@ -23,7 +40,7 @@ var OrderComponent = React.createClass({
     var subtotal = itemPriceArr.reduce(function(pValue, cValue){
       return pValue + cValue;
     },0);
-    console.log(subtotal);
+
     return (
       <div className="col-md-3">
         <div>Your Order</div>
@@ -44,19 +61,20 @@ var OrderComponent = React.createClass({
             {orderList}
           </tbody>
         </table>
-        <button type="button" className="btn btn-primary btn-lg btn-block">Check Out</button>
+        <button onClick={this.handleOrder} type="button" className="btn btn-primary btn-lg btn-block">Check Out</button>
       </div>
     );
   }
 });
 
 var MenuList = React.createClass({
+  mixins: [Backbone.React.Component.mixin],
   handleItem: function(content){
     this.props.collection.create({
       id: content.id, item: content.item, description: content.description, price: content.price
     });
     this.forceUpdate();
-    console.log(this.props.collection);
+
   },
   render: function(){
     var self = this;
@@ -64,7 +82,7 @@ var MenuList = React.createClass({
       var handleItem = this.handleItem.bind(this, content);
       return (
 
-        <tr key={content.id}>
+        <tr key={content.id || item.cid}>
           <td>
             <h4>{content.item}</h4>
             <p>{content.description}</p>
@@ -91,6 +109,7 @@ var MenuList = React.createClass({
 });
 
 var MenuContainer = React.createClass({
+  mixins: [Backbone.React.Component.mixin],
   getInitialState: function(){
     var collection = new MenuItemCollection();
     var model = new MenuItem();
@@ -98,14 +117,6 @@ var MenuContainer = React.createClass({
       model: model,
       collection: collection
     };
-  },
-  componentWillMount: function(){
-    var self = this;
-    var collection = this.state.collection;
-    this.state.collection.fetch().then(function(){
-        self.setState({collection: collection});
-    });
-
   },
   render: function(){
     return (
